@@ -1,17 +1,18 @@
-﻿# image-router
+# image-router
 
-**image-router** is developed to solve a critical issue in [CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus): when CodexPlusPlus is connected to a **text-only LLM backend** (e.g. DeepSeek V4 series, Qwen-Turbo, etc.), sending an image in chat causes the session to become **permanently unusable** 鈥?the model cannot process the image data and keeps crashing and the conversation breaks irrecoverably.
+**image-router** is developed to solve a critical issue in [CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus): when CodexPlusPlus is connected to a **text-only LLM backend** (e.g. DeepSeek V4 series), sending an image in chat causes the session to become **permanently unusable** -- the model cannot process the image data and the conversation breaks irrecoverably.
 
 image-router sits as a lightweight HTTP proxy between Codex++ and the text-only backend. It intercepts chat completion requests, detects attached images, runs them through a VL (vision-language) model for text analysis, replaces the image blocks with the analysis result, and forwards the cleaned request to the upstream API.
 
 ## How it works
 
 ```
-User sends image 鈹€鈹€> Codex++ 鈹€鈹€> image-router (:23456) 鈹€鈹€> Text-only LLM
-                                    鈹?                                    鈹溾攢鈹€ Detects image_url
-                                    鈹溾攢鈹€ Sends to VL model (Dashscope Qwen-VL-Plus)
-                                    鈹溾攢鈹€ Replaces image with analysis text
-                                    鈹斺攢鈹€ Forwards clean prompt to upstream
+User sends image --> Codex++ --> image-router (:23456) --> Text-only LLM
+                                   |
+                                   |-- Detects image_url
+                                   |-- Sends to VL model (Dashscope Qwen-VL-Plus)
+                                   |-- Replaces image with analysis text
+                                   |-- Forwards clean prompt to upstream
 ```
 
 ## Features
@@ -37,8 +38,10 @@ cp .env.example .env
 # 3. Install dependencies
 pip install fastapi uvicorn httpx python-dotenv
 
-# 4. Run
+# 4. Run the proxy
 python main.py
+
+# 5. Launch Codex++, go to any session, and send an image message
 ```
 
 ## Configuration
@@ -46,7 +49,7 @@ python main.py
 | Variable       | Default                                                              | Description                  |
 |----------------|----------------------------------------------------------------------|------------------------------|
 | `CODEX_PLUS_URL` | `https://api.deepseek.com`                                         | Upstream LLM API endpoint    |
-| `VL_API_KEY`   | 鈥?                                                                   | VL model API key             |
+| `VL_API_KEY`   | --                                                                   | VL model API key             |
 | `VL_MODEL`     | `qwen-vl-plus`                                                       | VL model name                |
 | `VL_BASE_URL`  | `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` | VL API endpoint              |
 | `VL_ENABLED`   | `true`                                                               | Enable/disable VL analysis   |
@@ -54,7 +57,6 @@ python main.py
 
 ## Logs
 
-- `_debug/last_forwarded.json` 鈥?last forwarded request payload (overwritten each request)
-- `_debug/prompts.log` 鈥?append-only log of every forwarded prompt, with VL status and user content
-- `proxy.log` 鈥?runtime logs
-
+- `_debug/last_forwarded.json` - last forwarded request payload (overwritten each request)
+- `_debug/prompts.log` - append-only log of every forwarded prompt, with VL status and user content
+- `proxy.log` - runtime logs
