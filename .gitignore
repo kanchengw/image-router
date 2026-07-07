@@ -1,0 +1,24 @@
+# Environment
+.env
+_config_backup.txt
+
+# Debug / logs
+_debug/
+proxy.log
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Dev notes
+plan.md
+log.md
+
+# Launcher / binding scripts (untested, use manual startup only)
+launcher.cs
+launcher.exe
+install.ps1
+uninstall.ps1
+desktop-uninstall.bat
