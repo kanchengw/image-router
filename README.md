@@ -43,7 +43,7 @@ Text content: Google Chrome
 Visual description: A screenshot of a Windows desktop showing application icons on the taskbar and desktop, including Chrome, WeGame, Git Bash, and system tray icons.
 ```
 
-### 3. Final prompt (sent to the base model)
+### 3. Final prompt (sent to the upstream model)
 
 After injection, the base model receives the user message with images replaced by the analysis text. For example, a user message containing text + image:
 
@@ -100,6 +100,7 @@ python main.py
 | `VL_BASE_URL`  | `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` | Vision analysis API endpoint |
 | `VL_ENABLED`   | `true`                                                               | Enable/disable vision analysis |
 | `PROXY_PORT`   | `23456`                                                              | Proxy listen port            |
+
 
 
 
