@@ -1,8 +1,8 @@
-# image-router
+﻿# image-router
 
 **image-router** is developed to solve a critical issue in [CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus): when CodexPlusPlus is connected to a **text-only LLM backend** (e.g. DeepSeek V4 series), sending an image in chat causes the session to become **permanently unusable** -- the model cannot process the image data and the conversation breaks irrecoverably.
 
-image-router sits as a lightweight HTTP proxy between Codex++ and the text-only backend. It intercepts chat completion requests, detects attached images, runs them through a VL (vision-language) model for text analysis, replaces the image blocks with the analysis result, and forwards the cleaned request to the upstream API.
+image-router sits as a lightweight HTTP proxy between Codex++ and the text-only backend. It intercepts chat completion requests, detects attached images, sends the image to a dedicated VL API (Dashscope Qwen-VL-Plus), which returns a text description of the image content; the proxy then replaces the original image blocks with that description, and forwards the cleaned request to the upstream API.
 
 ## How it works
 
@@ -10,7 +10,7 @@ image-router sits as a lightweight HTTP proxy between Codex++ and the text-only 
 User sends image --> Codex++ --> image-router (:23456) --> Text-only LLM
                                    |
                                    |-- Detects image_url
-                                   |-- Sends to VL model (Dashscope Qwen-VL-Plus)
+                                   |-- Calls dedicated VL API (Dashscope Qwen-VL-Plus)
                                    |-- Replaces image with analysis text
                                    |-- Forwards clean prompt to upstream
 ```
@@ -19,7 +19,7 @@ User sends image --> Codex++ --> image-router (:23456) --> Text-only LLM
 
 - Intercepts `POST /v1/chat/completions` requests
 - Detects `image_url` content blocks in the last user message
-- Sends detected images to a VL model (default: Qwen-VL-Plus via Dashscope) for analysis
+- Sends detected images to a dedicated VL API (Dashscope Qwen-VL-Plus) for text description
 - Replaces image blocks with the VL analysis text before forwarding
 - Logs every forwarded prompt to `_debug/prompts.log`
 - Supports streaming responses passthrough
@@ -60,3 +60,6 @@ python main.py
 - `_debug/last_forwarded.json` - last forwarded request payload (overwritten each request)
 - `_debug/prompts.log` - append-only log of every forwarded prompt, with VL status and user content
 - `proxy.log` - runtime logs
+
+
+
