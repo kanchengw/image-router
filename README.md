@@ -26,6 +26,28 @@ User sends image --> Codex++ --> image-router (:23456) --> Upstream Text-only Mo
   - Performs vision analysis (text extraction + image description) via a dedicated VL API
   - Replaces image blocks with the analysis text before forwarding
 - Transparent to Codex++ -- all other functionality remains unaffected
+## Quick Start
+
+```bash
+# 1. Clone and enter directory
+git clone https://github.com/kanchengw/image-router.git
+cd image-router
+
+# 2. Configure VL model API keys
+cp .env.example .env
+# Edit .env: set VL_API_KEY, VL_MODEL, VL_BASE_URL for your vision analysis provider
+
+# 3. Install dependencies
+pip install fastapi uvicorn httpx python-dotenv
+
+# 4. Run the proxy
+python main.py
+
+# 5. Configure Codex++ Manager: set supplier Base URL to http://127.0.0.1:23456
+#    Then restart Codex++
+# 6. Start a session in Codex++ and send an image message
+```
+
 ## Prompt Structures
 
 ### 1. Vision analysis prompt (sent to VL API)
@@ -67,28 +89,6 @@ After injection, the upstream model receives the user message with images replac
 ```
 
 Note: the original `image_url` block is removed entirely. Only the text description remains, ensuring the text-only model can process the message without issues.
-
-## Quick Start
-
-```bash
-# 1. Clone and enter directory
-git clone https://github.com/kanchengw/image-router.git
-cd image-router
-
-# 2. Configure VL model API keys
-cp .env.example .env
-# Edit .env: set VL_API_KEY, VL_MODEL, VL_BASE_URL for your vision analysis provider
-
-# 3. Install dependencies
-pip install fastapi uvicorn httpx python-dotenv
-
-# 4. Run the proxy
-python main.py
-
-# 5. Configure Codex++ Manager: set supplier Base URL to http://127.0.0.1:23456
-#    Then restart Codex++
-# 6. Start a session in Codex++ and send an image message
-```
 
 ## Configuration
 
