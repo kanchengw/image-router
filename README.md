@@ -1,4 +1,4 @@
-# image-router
+﻿# image-router
 
 **image-router** is developed to solve a critical issue in [CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus): when CodexPlusPlus is connected to a **text-only LLM backend** (e.g. DeepSeek V4 series), sending an image in chat causes the session to become **permanently unusable** -- the model cannot process the image data and the conversation breaks irrecoverably.
 
@@ -99,8 +99,5 @@ python main.py
 | `VL_ENABLED`   | `true`                                                               | Enable/disable vision analysis |
 | `PROXY_PORT`   | `23456`                                                              | Proxy listen port            |
 
-## Logs
 
-- `_debug/last_forwarded.json` - last forwarded request payload (overwritten each request)
-- `_debug/prompts.log` - append-only log of every forwarded prompt, with vision analysis status and user content
-- `proxy.log` - runtime logs
+
