@@ -1,8 +1,10 @@
-﻿# image-router
+# image-router
 
 **image-router** is developed to solve a critical issue in [CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus): when CodexPlusPlus is connected to a **text-only LLM backend** (e.g. DeepSeek V4 series), sending an image in chat causes the session to become **permanently unusable** -- the model cannot process the image data and the conversation breaks irrecoverably.
 
-image-router sits as a lightweight HTTP proxy between Codex++ and the text-only backend. It intercepts chat completion requests, detects attached images, sends the image to a dedicated VL API (Dashscope Qwen-VL-Plus), which returns a text description of the image content; the proxy then replaces the original image blocks with that description, and forwards the cleaned request to the upstream API.
+image-router sits as a lightweight HTTP proxy between Codex++ and the text-only backend. It intercepts chat completion requests, detects attached images, performs **vision analysis** via a dedicated VL API (Dashscope Qwen-VL-Plus), then replaces the original image blocks with the analysis result before forwarding the cleaned request upstream.
+
+Vision analysis includes **text extraction** (OCR) and **visual description** of the image content.
 
 ## How it works
 
@@ -10,17 +12,59 @@ image-router sits as a lightweight HTTP proxy between Codex++ and the text-only 
 User sends image --> Codex++ --> image-router (:23456) --> Text-only LLM
                                    |
                                    |-- Detects image_url
-                                   |-- Calls dedicated VL API (Dashscope Qwen-VL-Plus)
+                                   |-- Calls vision analysis API (Dashscope Qwen-VL-Plus)
                                    |-- Replaces image with analysis text
                                    |-- Forwards clean prompt to upstream
 ```
+
+## Prompt Structures
+
+### 1. Vision analysis prompt (sent to VL API)
+
+The proxy constructs a prompt asking the VL model to extract all visible text and describe the image:
+
+```
+Extract ALL visible text precisely, then describe. Output:
+[IMAGE ANALYSIS]
+Text content: <extracted text or "none">
+Visual description: <description>
+```
+
+### 2. Vision analysis output (returned by VL API)
+
+The VL model returns a structured response which is then injected into the user message:
+
+```
+[IMAGE ANALYSIS]
+Text content: Google Chrome
+               WeGame
+               Git Bash
+               ...
+Visual description: A screenshot of a Windows desktop showing application icons on the taskbar and desktop, including Chrome, WeGame, Git Bash, and system tray icons.
+```
+
+### 3. Final prompt (sent to the base model)
+
+After injection, the base model receives the user message with images replaced by the analysis text. For example, a user message containing text + image:
+
+```json
+{
+  "role": "user",
+  "content": [
+    {"type": "text", "text": "What is the status of this server?"},
+    {"type": "text", "text": "[IMAGE ANALYSIS]\nText content: CPU: 45%, Memory: 8.2/16GB\nVisual description: A screenshot of a Linux server monitoring dashboard showing CPU usage of 45% and memory usage of 8.2GB out of 16GB."}
+  ]
+}
+```
+
+Note: the original `image_url` block is removed entirely. Only the text description remains, ensuring the text-only model can process the message without issues.
 
 ## Features
 
 - Intercepts `POST /v1/chat/completions` requests
 - Detects `image_url` content blocks in the last user message
-- Sends detected images to a dedicated VL API (Dashscope Qwen-VL-Plus) for text description
-- Replaces image blocks with the VL analysis text before forwarding
+- Performs vision analysis (text extraction + image description) via a dedicated VL API
+- Replaces image blocks with the analysis text before forwarding
 - Logs every forwarded prompt to `_debug/prompts.log`
 - Supports streaming responses passthrough
 
@@ -49,17 +93,14 @@ python main.py
 | Variable       | Default                                                              | Description                  |
 |----------------|----------------------------------------------------------------------|------------------------------|
 | `CODEX_PLUS_URL` | `https://api.deepseek.com`                                         | Upstream LLM API endpoint    |
-| `VL_API_KEY`   | --                                                                   | VL model API key             |
-| `VL_MODEL`     | `qwen-vl-plus`                                                       | VL model name                |
-| `VL_BASE_URL`  | `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` | VL API endpoint              |
-| `VL_ENABLED`   | `true`                                                               | Enable/disable VL analysis   |
+| `VL_API_KEY`   | --                                                                   | Vision analysis API key      |
+| `VL_MODEL`     | `qwen-vl-plus`                                                       | Vision analysis model name   |
+| `VL_BASE_URL`  | `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` | Vision analysis API endpoint |
+| `VL_ENABLED`   | `true`                                                               | Enable/disable vision analysis |
 | `PROXY_PORT`   | `23456`                                                              | Proxy listen port            |
 
 ## Logs
 
 - `_debug/last_forwarded.json` - last forwarded request payload (overwritten each request)
-- `_debug/prompts.log` - append-only log of every forwarded prompt, with VL status and user content
+- `_debug/prompts.log` - append-only log of every forwarded prompt, with vision analysis status and user content
 - `proxy.log` - runtime logs
-
-
-
