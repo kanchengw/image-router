@@ -85,7 +85,9 @@ pip install fastapi uvicorn httpx python-dotenv
 # 4. Run the proxy
 python main.py
 
-# 5. Launch Codex++, go to any session, and send an image message
+# 5. Configure Codex++ Manager: set supplier Base URL to http://127.0.0.1:23456
+#    Then restart Codex++
+# 6. Start a session in Codex++ and send an image message
 ```
 
 ## Configuration
@@ -98,6 +100,9 @@ python main.py
 | `VL_BASE_URL`  | `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` | Vision analysis API endpoint |
 | `VL_ENABLED`   | `true`                                                               | Enable/disable vision analysis |
 | `PROXY_PORT`   | `23456`                                                              | Proxy listen port            |
+
+
+
 
 
 
