@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import httpx
 from dotenv import load_dotenv
@@ -127,13 +127,12 @@ async def proxy(path: str, req: Request):
 
     try:
         r = await _http.request(method=req.method, url=target, content=body, headers=hdrs, params=dict(req.query_params))
-        if r.status_code >= 400:
-            return JSONResponse({"id":"err","object":"chat.completion","created":int(__import__("time").time()),"model":"unknown","choices":[{"index":0,"message":{"role":"assistant","content":f"[upstream {r.status_code}]"},"finish_reason":"stop"}]}, status_code=200)
+        # Pass through upstream response as-is, including errors
         ct = r.headers.get("content-type", "")
         if "text/event-stream" in ct:
-            return StreamingResponse(r.aiter_bytes(), status_code=200, media_type=ct)
+            return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, media_type=ct)
         data = r.json() if r.text else {}
-        return JSONResponse(content=data, status_code=200)
+        return JSONResponse(content=data, status_code=r.status_code)
     except Exception as e:
         return JSONResponse({"id":"err","object":"chat.completion","created":int(__import__("time").time()),"model":"unknown","choices":[{"index":0,"message":{"role":"assistant","content":f"[proxy error: {type(e).__name__}]"},"finish_reason":"stop"}]}, status_code=200)
 
@@ -143,3 +142,5 @@ if __name__ == "__main__":
     status = "ON" if VL_ENABLED and VL_API_KEY else "OFF"
     print(f"[image-router] running on :{port} -> {CODEX_PLUS_URL} (vision analysis={status})")
     uvicorn.run("main:app", host="127.0.0.1", port=port, log_level="info")
+
+
