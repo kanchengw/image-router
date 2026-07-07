@@ -75,9 +75,9 @@ Note: the original `image_url` block is removed entirely. Only the text descript
 git clone https://github.com/kanchengw/image-router.git
 cd image-router
 
-# 2. Configure
+# 2. Configure VL model API keys
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env: fill in VL_API_KEY (Dashscope/Qwen-VL-Plus) and adjust other settings if needed
 
 # 3. Install dependencies
 pip install fastapi uvicorn httpx python-dotenv
@@ -100,6 +100,7 @@ python main.py
 | `VL_BASE_URL`  | `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` | Vision analysis API endpoint |
 | `VL_ENABLED`   | `true`                                                               | Enable/disable vision analysis |
 | `PROXY_PORT`   | `23456`                                                              | Proxy listen port            |
+
 
 
 
