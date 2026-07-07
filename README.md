@@ -17,6 +17,15 @@ User sends image --> Codex++ --> image-router (:23456) --> Upstream Text-only Mo
                                    |-- Merges vision analysis result with user instruction
 ```
 
+## Features
+
+- Recovers Codex++ sessions previously corrupted by image messages
+- Enables upstream text-only LLM to recognize images through the gateway:
+  - Intercepts `POST /v1/chat/completions` requests
+  - Detects `image_url` content blocks in the last user message
+  - Performs vision analysis (text extraction + image description) via a dedicated VL API
+  - Replaces image blocks with the analysis text before forwarding
+- Transparent to Codex++ -- all other functionality remains unaffected
 ## Prompt Structures
 
 ### 1. Vision analysis prompt (sent to VL API)
@@ -59,15 +68,6 @@ After injection, the upstream model receives the user message with images replac
 
 Note: the original `image_url` block is removed entirely. Only the text description remains, ensuring the text-only model can process the message without issues.
 
-## Features
-
-- Recovers Codex++ sessions previously corrupted by image messages
-- Enables upstream text-only LLM to recognize images through the gateway:
-  - Intercepts `POST /v1/chat/completions` requests
-  - Detects `image_url` content blocks in the last user message
-  - Performs vision analysis (text extraction + image description) via a dedicated VL API
-  - Replaces image blocks with the analysis text before forwarding
-- Transparent to Codex++ -- all other functionality remains unaffected
 ## Quick Start
 
 ```bash
