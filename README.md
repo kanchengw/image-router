@@ -62,13 +62,12 @@ Note: the original `image_url` block is removed entirely. Only the text descript
 ## Features
 
 - Recovers Codex++ sessions previously corrupted by image messages
-- Intercepts `POST /v1/chat/completions` requests
-- Detects `image_url` content blocks in the last user message
-- Performs vision analysis (text extraction + image description) via a dedicated VL API
-- Replaces image blocks with the analysis text before forwarding
+- Enables upstream text-only LLM to recognize images through the gateway:
+  - Intercepts `POST /v1/chat/completions` requests
+  - Detects `image_url` content blocks in the last user message
+  - Performs vision analysis (text extraction + image description) via a dedicated VL API
+  - Replaces image blocks with the analysis text before forwarding
 - Transparent to Codex++ -- all other functionality remains unaffected
-- Supports streaming responses passthrough
-
 ## Quick Start
 
 ```bash
